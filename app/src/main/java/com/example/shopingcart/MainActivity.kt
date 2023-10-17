@@ -17,7 +17,7 @@ import com.google.firebase.storage.ktx.storage
 import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
-   var  productmodel= ProductModel()
+    var productmodel = ProductModel()
     private val startForProfileImageResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             val resultCode = result.resultCode
@@ -29,16 +29,17 @@ class MainActivity : AppCompatActivity() {
                 binding.mainLayout.visibility = View.GONE
                 binding.spinKit.visibility = View.VISIBLE
                 val fileUri = data?.data!!
-                Firebase.storage.reference.child("ProductImage${UUID.randomUUID()}").putFile(fileUri).addOnCompleteListener()
+                Firebase.storage.reference.child("ProductImage${UUID.randomUUID()}")
+                    .putFile(fileUri).addOnCompleteListener()
                 {
-                         if (it.isSuccessful){
-                             it.result.storage.downloadUrl.addOnSuccessListener {
-                                  productmodel.imageurl= it.toString()
-                                 binding.productImage.setImageURI(fileUri)
-                                 binding.mainLayout.visibility = View.VISIBLE
-                                 binding.spinKit.visibility = View.GONE
-                             }
-                         }
+                    if (it.isSuccessful) {
+                        it.result.storage.downloadUrl.addOnSuccessListener {
+                            productmodel.imageurl = it.toString()
+                            binding.productImage.setImageURI(fileUri)
+                            binding.mainLayout.visibility = View.VISIBLE
+                            binding.spinKit.visibility = View.GONE
+                        }
+                    }
                 }
 
             } else if (resultCode == ImagePicker.RESULT_ERROR) {
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -57,19 +59,41 @@ class MainActivity : AppCompatActivity() {
 
 
 
-     binding.productImage.setOnClickListener {
-         ImagePicker.with(this)
-             .crop()
-             .compress(1024)         //Final image size will be less than 1 MB(Optional)
-             .maxResultSize(1080, 1080)  //Final image resolution will be less than 1080 x 1080(Optional)
-             .createIntent { intent ->
-                 startForProfileImageResult.launch(intent)
-             }
-     }
+        binding.productImage.setOnClickListener {
+            ImagePicker.with(this)
+                .crop()
+                .compress(1024)         //Final image size will be less than 1 MB(Optional)
+                .maxResultSize(
+                    1080,
+                    1080
+                )  //Final image resolution will be less than 1080 x 1080(Optional)
+                .createIntent { intent ->
+                    startForProfileImageResult.launch(intent)
+                }
+        }
+        binding.button.setOnClickListener {
+            if (binding.itemDetails.text.isEmpty()) {
+                binding.itemDetails.setError("Product name shouldn't be empty")
+            }
+            if (binding.priceDetails.text.isNullOrEmpty()) {
+                binding.priceDetails.setError("Price shouldn't be empty")
+            }
+            if (binding.itemDescription.text.isNullOrEmpty()) {
+                binding.itemDescription.setError("Description shouldn't be empty")
+            }
+            if (productmodel.imageurl.isEmpty()) {
+                Toast.makeText(this, "Image not selected", Toast.LENGTH_LONG).show()
+            } else {
+                productmodel.itemName = binding.itemDetails.text.toString()
+                productmodel.price = binding.priceDetails.text.toString().toDouble()
+                productmodel.description = binding.itemDescription.text.toString()
+                Toast.makeText(this, "Item Saved Sucessfully", Toast.LENGTH_LONG).show()
+            }
 
+
+        }
 
     }
-
 
 
 }
